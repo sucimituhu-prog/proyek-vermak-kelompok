@@ -1,35 +1,70 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
+const STORAGE_KEY = 'vermak-customers';
+const serviceOptions = ['Potong Celana', 'Ganti Resleting', 'Permak Jas'];
+
+const defaultCustomers = [
+  {
+    id: 1,
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone: '08123456789',
+    service: 'Potong Celana',
+    bodyMeasurements: {
+      height: 170,
+      weight: 70,
+      chest: 90,
+      waist: 80,
+      hips: 95
+    }
+  },
+  {
+    id: 2,
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phone: '08198765432',
+    service: 'Ganti Resleting',
+    bodyMeasurements: {
+      height: 165,
+      weight: 60,
+      chest: 85,
+      waist: 75,
+      hips: 90
+    }
+  }
+];
+
+const normalizeCustomer = (customer) => ({
+  ...customer,
+  service: customer.service || '',
+  bodyMeasurements: {
+    height: customer.bodyMeasurements?.height ?? '',
+    weight: customer.bodyMeasurements?.weight ?? '',
+    chest: customer.bodyMeasurements?.chest ?? '',
+    waist: customer.bodyMeasurements?.waist ?? '',
+    hips: customer.bodyMeasurements?.hips ?? ''
+  }
+});
 
 export default function CustomerList() {
   // State untuk daftar pelanggan
-  const [customers, setCustomers] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      phone: '08123456789',
-      bodyMeasurements: {
-        height: 170,
-        weight: 70,
-        chest: 90,
-        waist: 80,
-        hips: 95
-      }
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      phone: '08198765432',
-      bodyMeasurements: {
-        height: 165,
-        weight: 60,
-        chest: 85,
-        waist: 75,
-        hips: 90
-      }
+  const [customers, setCustomers] = useState(() => {
+    const savedCustomers = localStorage.getItem(STORAGE_KEY);
+
+    if (!savedCustomers) {
+      return defaultCustomers;
     }
-  ]);
+
+    try {
+      const parsedCustomers = JSON.parse(savedCustomers);
+      return Array.isArray(parsedCustomers)
+        ? parsedCustomers.map(normalizeCustomer)
+        : defaultCustomers;
+    } catch (error) {
+      console.error('Gagal membaca data pelanggan dari localStorage:', error);
+      return defaultCustomers;
+    }
+  });
 
   // State untuk pencarian
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,6 +86,7 @@ export default function CustomerList() {
     name: '',
     email: '',
     phone: '',
+    service: serviceOptions[0],
     bodyMeasurements: {
       height: '',
       weight: '',
@@ -59,6 +95,10 @@ export default function CustomerList() {
       hips: ''
     }
   });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+  }, [customers]);
 
   // Filter pelanggan berdasarkan search term
   const filteredCustomers = customers.filter(customer =>
@@ -86,7 +126,7 @@ export default function CustomerList() {
   // Handler untuk delete
   const handleDelete = (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) {
-      setCustomers(customers.filter(cust => cust.id !== id));
+      setCustomers(currentCustomers => currentCustomers.filter(cust => cust.id !== id));
     }
   };
 
@@ -99,18 +139,21 @@ export default function CustomerList() {
   // Handler untuk tambah pelanggan
   const handleAddCustomer = () => {
     if (newCustomer.name && newCustomer.email && newCustomer.phone) {
-      const newId = Math.max(...customers.map(c => c.id)) + 1;
-      setCustomers([...customers, {
-        id: newId,
+      const nextCustomer = {
+        id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1,
         name: newCustomer.name,
         email: newCustomer.email,
         phone: newCustomer.phone,
+        service: newCustomer.service,
         bodyMeasurements: newCustomer.bodyMeasurements
-      }]);
+      };
+
+      setCustomers(currentCustomers => [...currentCustomers, nextCustomer]);
       setNewCustomer({
         name: '',
         email: '',
         phone: '',
+        service: serviceOptions[0],
         bodyMeasurements: {
           height: '',
           weight: '',
@@ -298,6 +341,11 @@ export default function CustomerList() {
                 color: '#34495e',
                 fontSize: '16px'
               }}><strong style={{ color: '#3498db' }}>📱 Telepon:</strong> {customer.phone}</p>
+              <p style={{
+                margin: '10px 0',
+                color: '#34495e',
+                fontSize: '16px'
+              }}><strong style={{ color: '#3498db' }}>🧵 Layanan:</strong> {customer.service || '-'}</p>
               <div>
                 <h4 style={{
                   margin: '15px 0 10px 0',
@@ -615,6 +663,43 @@ export default function CustomerList() {
                   onFocus={(e) => e.target.style.borderColor = '#3498db'}
                   onBlur={(e) => e.target.style.borderColor = '#bdc3c7'}
                 />
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '5px',
+                  color: '#34495e',
+                  fontWeight: 'bold',
+                  fontSize: '14px'
+                }}>
+                  Layanan:
+                </label>
+                <select
+                  name="service"
+                  value={newCustomer.service}
+                  onChange={handleNewCustomerChange}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    boxSizing: 'border-box',
+                    border: '2px solid #bdc3c7',
+                    borderRadius: '10px',
+                    fontSize: '16px',
+                    outline: 'none',
+                    transition: 'border-color 0.3s ease',
+                    fontFamily: 'inherit',
+                    backgroundColor: 'white'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#3498db'}
+                  onBlur={(e) => e.target.style.borderColor = '#bdc3c7'}
+                >
+                  {serviceOptions.map((service) => (
+                    <option key={service} value={service}>
+                      {service}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

@@ -1,26 +1,48 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import AddOrder from './pages/AddOrder';
 import CustomerList from './pages/CustomerList';
 import FinanceReport from './pages/FinanceReport';
 
 function App() {
+  const navItems = [
+    { to: '/', label: 'Dashboard' },
+    { to: '/add-order', label: 'Tambah Pesanan' },
+    { to: '/customers', label: 'Data Pelanggan' },
+    { to: '/reports', label: 'Laporan' }
+  ];
+
   return (
     <Router>
-      <div style={{ padding: '20px', fontFamily: 'Arial' }}>
-        <nav style={{ marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
-          <Link to="/" style={{ marginRight: '15px' }}>Dashboard</Link>
-          <Link to="/add-order" style={{ marginRight: '15px' }}>Tambah Pesanan</Link>
-          <Link to="/customers" style={{ marginRight: '15px' }}>Data Pelanggan</Link>
-          <Link to="/reports">Laporan</Link>
-        </nav>
+      <div className="app-shell">
+        <header className="app-topbar">
+          <div className="app-brand">
+            <span className="app-brand__eyebrow">Studio Vermak</span>
+            <h1 className="app-brand__title">Kelola pesanan dan pelanggan dengan lebih rapi.</h1>
+          </div>
 
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/add-order" element={<AddOrder />} />
-          <Route path="/customers" element={<CustomerList />} />
-          <Route path="/reports" element={<FinanceReport />} />
-        </Routes>
+          <nav className="app-nav" aria-label="Navigasi utama">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) => `app-nav__link${isActive ? ' is-active' : ''}`}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </header>
+
+        <main className="app-content">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/add-order" element={<AddOrder />} />
+            <Route path="/customers" element={<CustomerList />} />
+            <Route path="/reports" element={<FinanceReport />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );
