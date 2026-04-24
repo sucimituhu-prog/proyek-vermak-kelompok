@@ -14,71 +14,89 @@ const Dashboard = () => {
     { id: 3, nama: 'Andi', layanan: 'Permak Jas', status: 'Proses' },
   ];
 
+  const quickNotes = [
+    'Pantau antrean yang sedang dikerjakan hari ini.',
+    'Pastikan layanan dengan deadline dekat diprioritaskan.',
+    'Gunakan data pelanggan untuk repeat order yang lebih cepat.',
+  ];
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '30px' }}>
-        <h1 style={{ color: '#1f2937' }}>Ringkasan Operasional</h1>
-        <p style={{ color: '#6b7280' }}>Halo, berikut progres vermak hari ini.</p>
+    <div className="dashboard-page">
+      <header className="dashboard-hero">
+        <div>
+          <p className="dashboard-hero__eyebrow">Ringkasan Harian</p>
+          <h2 className="dashboard-hero__title">Operasional vermak hari ini terlihat jelas dan cepat dipantau.</h2>
+          <p className="dashboard-hero__subtitle">Lihat antrean aktif, progres layanan, dan gambaran kerja harian dalam satu layar.</p>
+        </div>
+        <div className="dashboard-highlight">
+          <span className="dashboard-highlight__label">Fokus Hari Ini</span>
+          <strong className="dashboard-highlight__value">5 pesanan masih diproses</strong>
+          <span className="dashboard-highlight__meta">Jaga ritme pengerjaan dan update status saat pesanan selesai.</span>
+        </div>
       </header>
 
-      {/* Barisan Kartu Statistik */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-        gap: '20px',
-        marginBottom: '40px' 
-      }}>
+      <section className="dashboard-stats">
         {stats.map((item, index) => (
-          <div key={index} style={{
-            padding: '20px',
-            borderRadius: '12px',
-            backgroundColor: 'white',
-            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-            borderLeft: `6px solid ${item.color}`
-          }}>
-            <span style={{ color: '#6b7280', fontSize: '14px', fontWeight: '600' }}>{item.label}</span>
-            <h2 style={{ fontSize: '32px', margin: '10px 0 0 0', color: '#111827' }}>{item.value}</h2>
+          <div key={index} className="stat-card" style={{ '--stat-accent': item.color }}>
+            <span className="stat-card__label">{item.label}</span>
+            <h3 className="stat-card__value">{item.value}</h3>
           </div>
         ))}
-      </div>
+      </section>
 
-      {/* Tabel Pesanan Terbaru */}
-      <div style={{
-        backgroundColor: 'white',
-        padding: '20px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
-      }}>
-        <h3 style={{ marginBottom: '20px' }}>Antrean Pesanan Terbaru</h3>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ textAlign: 'left', borderBottom: '2px solid #f3f4f6' }}>
-              <th style={{ padding: '12px' }}>Nama Pelanggan</th>
-              <th style={{ padding: '12px' }}>Jenis Layanan</th>
-              <th style={{ padding: '12px' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentOrders.map((order) => (
-              <tr key={order.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={{ padding: '12px' }}>{order.nama}</td>
-                <td style={{ padding: '12px' }}>{order.layanan}</td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{
-                    padding: '4px 10px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    backgroundColor: order.status === 'Selesai' ? '#dcfce7' : '#fef3c7',
-                    color: order.status === 'Selesai' ? '#166534' : '#92400e'
-                  }}>
-                    {order.status}
-                  </span>
-                </td>
-              </tr>
+      <section className="dashboard-grid">
+        <div className="dashboard-panel">
+          <div className="dashboard-panel__header">
+            <div>
+              <p className="dashboard-panel__eyebrow">Pesanan Aktif</p>
+              <h3 className="dashboard-panel__title">Antrean Pesanan Terbaru</h3>
+            </div>
+          </div>
+
+          <div className="dashboard-table-wrap">
+            <table className="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Nama Pelanggan</th>
+                  <th>Jenis Layanan</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentOrders.map((order) => (
+                  <tr key={order.id}>
+                    <td>{order.nama}</td>
+                    <td>{order.layanan}</td>
+                    <td>
+                      <span className={`status-pill${order.status === 'Selesai' ? ' is-complete' : ''}`}>
+                        {order.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside className="dashboard-panel dashboard-panel--compact">
+          <div className="dashboard-panel__header">
+            <div>
+              <p className="dashboard-panel__eyebrow">Catatan Cepat</p>
+              <h3 className="dashboard-panel__title">Prioritas Tim</h3>
+            </div>
+          </div>
+
+          <div className="note-list">
+            {quickNotes.map((note) => (
+              <div key={note} className="note-item">
+                <span className="note-item__dot" aria-hidden="true"></span>
+                <p>{note}</p>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </aside>
+      </section>
     </div>
   );
 };
