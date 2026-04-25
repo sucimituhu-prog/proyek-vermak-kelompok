@@ -1,105 +1,125 @@
 import React from 'react';
-import { useOrders } from '../context/OrderContext'; 
+import { useOrders } from '../context/OrderContext';
 
-const Dashboard = () => {
-  // 1. Ambil data DAN fungsi update dari Context di sini (hanya sekali saja)
-  const { orders, updateOrderStatus } = useOrders(); 
+export default function Dashboard() {
+  // Ambil data dan fungsi update dari Context
+  const { orders, updateOrderStatus } = useOrders();
+
+  // Logika statistik (mendukung status 'menunggu', 'diproses', dan 'selesai')
+  const menunggu = orders.filter(o => o.status === 'menunggu').length;
+  const diproses = orders.filter(o => o.status === 'diproses').length;
+  const selesai  = orders.filter(o => o.status === 'selesai' || o.status === 'Selesai').length;
 
   const stats = [
-    { label: 'Total Pesanan', value: orders.length, color: '#3b82f6' },
-    { label: 'Sedang Diproses', value: orders.filter(o => o.status === 'menunggu').length, color: '#f59e0b' },
-    { label: 'Selesai', value: orders.filter(o => o.status === 'selesai').length, color: '#10b981' },
+    { label: 'Pesanan Baru', value: menunggu, accent: 'var(--primary-500)' },
+    { label: 'Sedang Diproses', value: diproses, accent: 'var(--warning-500)' },
+    { label: 'Selesai', value: selesai, accent: 'var(--success-500)' },
   ];
+
+  // Tampilkan 5 pesanan terbaru saja di dashboard
+  const recentOrders = orders.slice(0, 5);
 
   const quickNotes = [
     'Pantau antrean yang sedang dikerjakan hari ini.',
     'Pastikan layanan dengan deadline dekat diprioritaskan.',
-    'Gunakan data pelanggan untuk repeat order yang lebih cepat.',
+    'Klik pada status pesanan untuk mengubah progres secara cepat.',
   ];
 
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-hero">
-        <div>
-          <p className="dashboard-hero__eyebrow">Ringkasan Harian</p>
-          <h2 className="dashboard-hero__title">Operasional vermak hari ini terlihat jelas.</h2>
-          <p className="dashboard-hero__subtitle">Data real-time dari database Studio Vermak.</p>
+    <div className="page">
+      <header className="page-header">
+        <div className="page-header__body">
+          <p className="page-header__eyebrow">Ringkasan Harian</p>
+          <h2 className="page-header__title">Operasional Studio Vermak</h2>
+          <p className="page-header__subtitle">Data real-time langsung dari database tim.</p>
         </div>
-        <div className="dashboard-highlight">
-          <span className="dashboard-highlight__label">Fokus Hari Ini</span>
-          <strong className="dashboard-highlight__value">
-            {orders.filter(o => o.status === 'menunggu').length} pesanan menunggu
+        <div className="page-header__highlight">
+          <span className="page-header__highlight-label">Fokus Hari Ini</span>
+          <strong className="page-header__highlight-value">
+            {menunggu + diproses} Pesanan Aktif
           </strong>
+          <span className="page-header__highlight-meta">Jangan lupa update status jika sudah selesai dikerjakan!</span>
         </div>
       </header>
 
-      <section className="dashboard-stats">
+      <section className="card-grid">
         {stats.map((item, index) => (
-          <div key={index} className="stat-card" style={{ '--stat-accent': item.color }}>
-            <span className="stat-card__label">{item.label}</span>
-            <h3 className="stat-card__value">{item.value}</h3>
+          <div key={index} className="card card--accent-left" style={{ '--card-accent': item.accent }}>
+            <span className="card__label">{item.label}</span>
+            <h3 className="card__value">{item.value}</h3>
           </div>
         ))}
       </section>
 
-      <section className="dashboard-grid">
-        <div className="dashboard-panel">
-          <div className="dashboard-panel__header">
+      <section className="panel-grid">
+        <div className="panel">
+          <div className="panel__header">
             <div>
-              <p className="dashboard-panel__eyebrow">Pesanan Aktif</p>
-              <h3 className="dashboard-panel__title">Antrean Pesanan Terbaru</h3>
+              <p className="panel__eyebrow">Pesanan Aktif</p>
+              <h3 className="panel__title">5 Antrean Terbaru</h3>
             </div>
           </div>
 
-          <div className="dashboard-table-wrap">
-            <table className="dashboard-table">
+          <div className="table-wrap">
+            <table className="table">
               <thead>
                 <tr>
                   <th>Nama Pelanggan</th>
-                  <th>Jenis Layanan</th>
-                  <th>Status</th>
+                  <th>Layanan</th>
+                  <th>Status (Klik untuk Ubah)</th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td>{order.nama_pelanggan}</td>
-                    <td>{order.layanan}</td>
-                    <td>
-                      <button 
-                        onClick={() => {
-                          const nextStatus = order.status === 'menunggu' ? 'selesai' : 'menunggu';
-                          updateOrderStatus(order.id, nextStatus);
-                        }}
-                        className={`status-pill${order.status === 'selesai' ? ' is-complete' : ''}`}
-                        style={{ 
-                          cursor: 'pointer', 
-                          border: 'none', 
-                          fontFamily: 'inherit',
-                          display: 'inline-block'
-                        }}
-                        title="Klik untuk ubah status"
-                      >
-                        {order.status}
-                      </button>
+                {recentOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="text-center" style={{ padding: 32, color: 'var(--slate-400)' }}>
+                      Belum ada pesanan masuk.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  recentOrders.map((order) => (
+                    <tr key={order.id}>
+                      {/* Mendukung nama_pelanggan (DB) dan namaPelanggan (Adit) */}
+                      <td style={{ fontWeight: 500 }}>{order.nama_pelanggan || order.namaPelanggan}</td>
+                      <td>{order.layanan}</td>
+                      <td>
+                        <button 
+                          onClick={() => {
+                            // Fungsi toggle status: Menunggu -> Selesai
+                            const nextStatus = order.status === 'menunggu' ? 'selesai' : 'menunggu';
+                            updateOrderStatus(order.id, nextStatus);
+                          }}
+                          className={`status-pill ${order.status === 'selesai' ? 'is-complete' : 'is-waiting'}`}
+                          style={{ 
+                            cursor: 'pointer', 
+                            border: 'none', 
+                            fontFamily: 'inherit',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold'
+                          }}
+                          title="Klik untuk ubah status"
+                        >
+                          {order.status}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        <aside className="dashboard-panel dashboard-panel--compact">
-          <div className="dashboard-panel__header">
+        <aside className="panel">
+          <div className="panel__header">
             <div>
-              <p className="dashboard-panel__eyebrow">Catatan Cepat</p>
-              <h3 className="dashboard-panel__title">Prioritas Tim</h3>
+              <p className="panel__eyebrow">Catatan Cepat</p>
+              <h3 className="panel__title">Prioritas Tim</h3>
             </div>
           </div>
           <div className="note-list">
-            {quickNotes.map((note) => (
-              <div key={note} className="note-item">
+            {quickNotes.map((note, idx) => (
+              <div key={idx} className="note-item">
                 <span className="note-item__dot" aria-hidden="true"></span>
                 <p>{note}</p>
               </div>
@@ -109,6 +129,4 @@ const Dashboard = () => {
       </section>
     </div>
   );
-};
-
-export default Dashboard;
+}
