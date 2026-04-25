@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
 
 const OrderContext = createContext();
 
@@ -9,8 +8,9 @@ export const OrderProvider = ({ children }) => {
   // Fungsi untuk ambil data dari MySQL lewat Backend
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/orders');
-      setOrders(response.data);
+      const response = await fetch('http://localhost:5000/api/orders');
+      const data = await response.json();
+      setOrders(data);
     } catch (error) {
       console.error("Gagal ambil data pesanan:", error);
     }
@@ -19,7 +19,11 @@ export const OrderProvider = ({ children }) => {
   // Fungsi untuk tambah pesanan ke MySQL
   const addOrder = async (newOrder) => {
     try {
-      await axios.post('http://localhost:5000/api/orders', newOrder);
+      await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder),
+      });
       fetchOrders(); // Refresh data setelah nambah
     } catch (error) {
       console.error("Gagal tambah pesanan:", error);

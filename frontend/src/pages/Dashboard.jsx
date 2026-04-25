@@ -1,18 +1,19 @@
-import React from 'react';
+import { useOrders } from '../context/OrderContext';
 
-const Dashboard = () => {
-  // Dummy data untuk simulasi (Nanti diganti data dari Backend/Context)
+export default function Dashboard() {
+  const { orders } = useOrders();
+
+  const menunggu = orders.filter(o => o.status === 'menunggu').length;
+  const diproses = orders.filter(o => o.status === 'diproses').length;
+  const selesai  = orders.filter(o => o.status === 'selesai').length;
+
   const stats = [
-    { label: 'Pesanan Baru', value: '8', color: '#3b82f6' }, // Biru
-    { label: 'Sedang Diproses', value: '5', color: '#f59e0b' }, // Oranye
-    { label: 'Selesai Hari Ini', value: '12', color: '#10b981' }, // Hijau
+    { label: 'Pesanan Baru', value: menunggu, accent: 'var(--primary-500)' },
+    { label: 'Sedang Diproses', value: diproses, accent: 'var(--warning-500)' },
+    { label: 'Selesai', value: selesai, accent: 'var(--success-500)' },
   ];
 
-  const recentOrders = [
-    { id: 1, nama: 'Budi', layanan: 'Potong Celana', status: 'Proses' },
-    { id: 2, nama: 'Siti', layanan: 'Ganti Resleting', status: 'Selesai' },
-    { id: 3, nama: 'Andi', layanan: 'Permak Jas', status: 'Proses' },
-  ];
+  const recentOrders = orders.slice(0, 5);
 
   const quickNotes = [
     'Pantau antrean yang sedang dikerjakan hari ini.',
@@ -21,40 +22,40 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-hero">
-        <div>
-          <p className="dashboard-hero__eyebrow">Ringkasan Harian</p>
-          <h2 className="dashboard-hero__title">Operasional vermak hari ini terlihat jelas dan cepat dipantau.</h2>
-          <p className="dashboard-hero__subtitle">Lihat antrean aktif, progres layanan, dan gambaran kerja harian dalam satu layar.</p>
+    <div className="page">
+      <header className="page-header">
+        <div className="page-header__body">
+          <p className="page-header__eyebrow">Ringkasan Harian</p>
+          <h2 className="page-header__title">Operasional vermak hari ini terlihat jelas dan cepat dipantau.</h2>
+          <p className="page-header__subtitle">Lihat antrean aktif, progres layanan, dan gambaran kerja harian dalam satu layar.</p>
         </div>
-        <div className="dashboard-highlight">
-          <span className="dashboard-highlight__label">Fokus Hari Ini</span>
-          <strong className="dashboard-highlight__value">5 pesanan masih diproses</strong>
-          <span className="dashboard-highlight__meta">Jaga ritme pengerjaan dan update status saat pesanan selesai.</span>
+        <div className="page-header__highlight">
+          <span className="page-header__highlight-label">Fokus Hari Ini</span>
+          <strong className="page-header__highlight-value">{diproses} pesanan masih diproses</strong>
+          <span className="page-header__highlight-meta">Jaga ritme pengerjaan dan update status saat pesanan selesai.</span>
         </div>
       </header>
 
-      <section className="dashboard-stats">
+      <section className="card-grid">
         {stats.map((item, index) => (
-          <div key={index} className="stat-card" style={{ '--stat-accent': item.color }}>
-            <span className="stat-card__label">{item.label}</span>
-            <h3 className="stat-card__value">{item.value}</h3>
+          <div key={index} className="card card--accent-left" style={{ '--card-accent': item.accent }}>
+            <span className="card__label">{item.label}</span>
+            <h3 className="card__value">{item.value}</h3>
           </div>
         ))}
       </section>
 
-      <section className="dashboard-grid">
-        <div className="dashboard-panel">
-          <div className="dashboard-panel__header">
+      <section className="panel-grid">
+        <div className="panel">
+          <div className="panel__header">
             <div>
-              <p className="dashboard-panel__eyebrow">Pesanan Aktif</p>
-              <h3 className="dashboard-panel__title">Antrean Pesanan Terbaru</h3>
+              <p className="panel__eyebrow">Pesanan Aktif</p>
+              <h3 className="panel__title">Antrean Pesanan Terbaru</h3>
             </div>
           </div>
 
-          <div className="dashboard-table-wrap">
-            <table className="dashboard-table">
+          <div className="table-wrap">
+            <table className="table">
               <thead>
                 <tr>
                   <th>Nama Pelanggan</th>
@@ -63,33 +64,41 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td>{order.nama}</td>
-                    <td>{order.layanan}</td>
-                    <td>
-                      <span className={`status-pill${order.status === 'Selesai' ? ' is-complete' : ''}`}>
-                        {order.status}
-                      </span>
+                {recentOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="text-center" style={{ padding: 32, color: 'var(--slate-400)' }}>
+                      Belum ada pesanan masuk.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  recentOrders.map((order) => (
+                    <tr key={order.id}>
+                      <td>{order.namaPelanggan}</td>
+                      <td>{order.layanan}</td>
+                      <td>
+                        <span className={`status-pill ${order.status === 'selesai' ? 'is-complete' : 'is-waiting'}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        <aside className="dashboard-panel dashboard-panel--compact">
-          <div className="dashboard-panel__header">
+        <aside className="panel">
+          <div className="panel__header">
             <div>
-              <p className="dashboard-panel__eyebrow">Catatan Cepat</p>
-              <h3 className="dashboard-panel__title">Prioritas Tim</h3>
+              <p className="panel__eyebrow">Catatan Cepat</p>
+              <h3 className="panel__title">Prioritas Tim</h3>
             </div>
           </div>
 
           <div className="note-list">
-            {quickNotes.map((note) => (
-              <div key={note} className="note-item">
+            {quickNotes.map((note, idx) => (
+              <div key={idx} className="note-item">
                 <span className="note-item__dot" aria-hidden="true"></span>
                 <p>{note}</p>
               </div>
@@ -99,6 +108,5 @@ const Dashboard = () => {
       </section>
     </div>
   );
-};
+}
 
-export default Dashboard;
