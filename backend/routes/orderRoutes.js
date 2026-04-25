@@ -125,5 +125,27 @@ router.delete("/:id", async (req, res) => {
     return res.status(500).json({ message: "Gagal menghapus pesanan." });
   }
 });
+// ─── PUT /api/orders/:id — Update Profil Pelanggan (BARU) ──────────────────
+router.put("/:id", async (req, res) => {
+  const { id } = req.params;
+  // Kita ambil nama_pelanggan dan nomor_hp dari request body
+  const { nama_pelanggan, nomor_hp } = req.body;
+
+  try {
+    const [result] = await db.execute(
+      "UPDATE orders SET nama_pelanggan = ?, nomor_hp = ? WHERE id = ?",
+      [nama_pelanggan, nomor_hp, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Pesanan/Pelanggan tidak ditemukan." });
+    }
+
+    return res.status(200).json({ message: "Profil pelanggan berhasil diperbarui." });
+  } catch (err) {
+    console.error("PUT /api/orders/:id error:", err);
+    return res.status(500).json({ message: "Gagal mengupdate database." });
+  }
+});
 
 module.exports = router;

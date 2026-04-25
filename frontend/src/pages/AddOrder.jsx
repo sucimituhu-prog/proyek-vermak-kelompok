@@ -1,204 +1,154 @@
-import { useState } from "react";
-import axios from "axios";
+import React, { useState } from 'react';
+import { useOrders } from '../context/OrderContext';
 
-
-const LAYANAN = [
-  { nama: "Potong Celana",   harga: 25000,  deadlineHari: 2 },
-  { nama: "Ganti Resleting", harga: 20000,  deadlineHari: 1 },
-  { nama: "Permak Jas",      harga: 75000,  deadlineHari: 5 },
-];
-
-
-function hitungDeadline(deadlineHari) {
-  const now = new Date();
-  now.setDate(now.getDate() + deadlineHari);
-  return now.toISOString().slice(0, 10);
-}
-
-function hitungTotal(namaLayanan, qty) {
-  const layanan = LAYANAN.find((l) => l.nama === namaLayanan);
-  if (!layanan || !qty) return 0;
-  return layanan.harga * parseInt(qty, 10);
-}
-
-
-export default function AddOrder() {
-  const [form, setForm] = useState({
-    namaPelanggan: "",
-    nomorHP: "",
-    layanan: "",
-    qty: "",
-    catatan: "",
+const AddOrder = () => {
+  const { addOrder } = useOrders();
+  
+  // 1. SESUAIKAN NAMA KEY DENGAN BACKEND ELSA
+  const [formData, setFormData] = useState({
+    namaPelanggan: '', // Mengikuti req.body.namaPelanggan di backend
+    nomorHP: '',       // Mengikuti req.body.nomorHP di backend
+    layanan: '', 
+    qty: 1,            // Tambahkan default qty karena backend mewajibkan ini
+    catatan: '',       // Tambahkan catatan
+    total_harga: '',   // Tetap dihitung di frontend untuk tampilan
+    deadline: '', 
+    status: 'menunggu'
   });
 
   const [loading, setLoading] = useState(false);
-  const [pesan,   setPesan]   = useState(null);
-  const [error,   setError]   = useState(null);
+  const [success, setSuccess] = useState(false);
 
-  const layananDipilih = LAYANAN.find((l) => l.nama === form.layanan);
-  const total    = hitungTotal(form.layanan, form.qty);
-  const deadline = layananDipilih ? hitungDeadline(layananDipilih.deadlineHari) : null;
+  const handleLayananChange = (e) => {
+    const layananDipilih = e.target.value;
+    let hargaDefault = 0;
+    let estimasiHari = 0;
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setPesan(null);
-    setError(null);
-  }
+    switch (layananDipilih) {
+      case 'Potong Celana':
+        hargaDefault = 25000;
+        estimasiHari = 1;
+        break;
+      case 'Ganti Resleting':
+        hargaDefault = 20000;
+        estimasiHari = 1;
+        break;
+      case 'Permak Jas':
+        hargaDefault = 150000; // Sesuaikan dengan list harga tim
+        estimasiHari = 5;
+        break;
+      case 'Kecilin Baju':
+        hargaDefault = 35000;
+        estimasiHari = 2;
+        break;
+      default:
+        hargaDefault = 0;
+        estimasiHari = 0;
+    }
 
-  async function handleSubmit(e) {
+    const hariIni = new Date();
+    hariIni.setDate(hariIni.getDate() + estimasiHari);
+    const formatDeadline = hariIni.toISOString().split('T')[0];
+
+    setFormData({
+      ...formData,
+      layanan: layananDipilih,
+      total_harga: hargaDefault * formData.qty, // Hitung berdasarkan qty
+      deadline: formatDeadline
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!form.namaPelanggan || !form.nomorHP || !form.layanan || !form.qty) {
-      setError("Semua field wajib diisi.");
-      return;
-    }
-    if (parseInt(form.qty, 10) < 1) {
-      setError("Jumlah item minimal 1.");
-      return;
-    }
-
-    const payload = {
-      namaPelanggan: form.namaPelanggan,
-      nomorHP:       form.nomorHP,
-      layanan:       form.layanan,
-      qty:           parseInt(form.qty, 10),
-      catatan:       form.catatan,
-      totalHarga:    total,
-      deadline,
-      status:        "menunggu",
-    };
-
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await axios.post("/api/orders", payload);
-      setPesan(`Pesanan berhasil disimpan! ID: ${res.data.orderId}`);
-      setForm({ namaPelanggan: "", nomorHP: "", layanan: "", qty: "", catatan: "" });
-    } catch (err) {
-      setError(err.response?.data?.message || "Gagal menyimpan pesanan. Coba lagi.");
+      // 2. KIRIM DATA KE CONTEXT
+      await addOrder(formData);
+      setSuccess(true);
+      
+      // Reset form
+      setFormData({
+        namaPelanggan: '',
+        nomorHP: '',
+        layanan: '',
+        qty: 1,
+        catatan: '',
+        total_harga: '',
+        deadline: '',
+        status: 'menunggu'
+      });
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (error) {
+      alert("Gagal menyimpan! Periksa koneksi backend.");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <div style={s.wrapper}>
-      <div style={s.card}>
-        <div style={s.cardHeader}>
-          <h2 style={s.title}>🧵 Tambah Pesanan Vermak</h2>
-          <p style={s.subtitle}>Isi form di bawah untuk mencatat pesanan baru</p>
-        </div>
+    <div className="add-order-page" style={{ padding: '30px', maxWidth: '600px', margin: '0 auto' }}>
+      <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+        <h2 style={{ marginBottom: '10px', color: '#1e293b' }}>Tambah Pesanan</h2>
+        <p style={{ color: '#64748b', marginBottom: '25px', fontSize: '0.9rem' }}>Input data pesanan dengan perhitungan deadline otomatis.</p>
+        
+        {success && (
+          <div style={{ padding: '12px', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '20px', textAlign: 'center', fontWeight: '500' }}>
+            ✅ Pesanan & Deadline berhasil dicatat!
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} style={s.form}>
-
-          <Field label="Nama Pelanggan">
-            <input style={s.input} name="namaPelanggan" value={form.namaPelanggan}
-              onChange={handleChange} placeholder="Contoh: Budi Santoso" />
-          </Field>
-
-          <Field label="Nomor HP">
-            <input style={s.input} name="nomorHP" value={form.nomorHP}
-              onChange={handleChange} placeholder="Contoh: 08123456789" />
-          </Field>
-
-          <Field label="Jenis Layanan">
-            <select style={s.input} name="layanan" value={form.layanan} onChange={handleChange}>
-              <option value="">-- Pilih Layanan --</option>
-              {LAYANAN.map((l) => (
-                <option key={l.nama} value={l.nama}>
-                  {l.nama} — Rp {l.harga.toLocaleString("id-ID")} / item
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Jumlah Item">
-            <input style={s.input} name="qty" type="number" min="1"
-              value={form.qty} onChange={handleChange} placeholder="Contoh: 2" />
-          </Field>
-
-          <Field label="Catatan (opsional)">
-            <textarea style={{ ...s.input, height: 72, resize: "vertical" }}
-              name="catatan" value={form.catatan} onChange={handleChange}
-              placeholder="Contoh: celana panjang, potong 3 cm" />
-          </Field>
-
-          {form.layanan && form.qty && (
-            <div style={s.infoBox}>
-              <div style={s.infoRow}>
-                <span>💰 Total Harga</span>
-                <strong>Rp {total.toLocaleString("id-ID")}</strong>
-              </div>
-              <div style={s.infoRow}>
-                <span>📅 Estimasi Selesai</span>
-                <strong>{deadline}</strong>
-              </div>
-              <div style={s.infoRow}>
-                <span>⏱ Pengerjaan</span>
-                <strong>{layananDipilih.deadlineHari} hari kerja</strong>
-              </div>
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', fontWeight: '600' }}>Nama Pelanggan</label>
+              <input type="text" required value={formData.namaPelanggan} onChange={(e) => setFormData({...formData, namaPelanggan: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
             </div>
-          )}
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', fontWeight: '600' }}>WhatsApp</label>
+              <input type="text" required value={formData.nomorHP} onChange={(e) => setFormData({...formData, nomorHP: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+            </div>
+          </div>
 
-          {pesan && <div style={s.sukses}>✅ {pesan}</div>}
-          {error && <div style={s.errorBox}>⚠️ {error}</div>}
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px', marginBottom: '15px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', fontWeight: '600' }}>Jenis Layanan</label>
+              <select required value={formData.layanan} onChange={handleLayananChange} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
+                <option value="">-- Pilih Layanan --</option>
+                <option value="Potong Celana">Potong Celana (1 Hari)</option>
+                <option value="Ganti Resleting">Ganti Resleting (1 Hari)</option>
+                <option value="Kecilin Baju">Kecilin Baju (2 Hari)</option>
+                <option value="Permak Jas">Permak Jas (5 Hari)</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', fontWeight: '600' }}>Jumlah (Qty)</label>
+              <input type="number" min="1" required value={formData.qty} onChange={(e) => setFormData({...formData, qty: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+            </div>
+          </div>
 
-          <button type="submit" disabled={loading}
-            style={{ ...s.btn, opacity: loading ? 0.7 : 1 }}>
-            {loading ? "Menyimpan..." : "💾 Simpan Pesanan"}
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', fontWeight: '600' }}>Catatan Tambahan</label>
+            <textarea value={formData.catatan} onChange={(e) => setFormData({...formData, catatan: e.target.value})} placeholder="Contoh: Potong 3cm, pakai benang biru" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', height: '80px' }} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', fontWeight: '600' }}>Estimasi Biaya (Rp)</label>
+              <input type="number" readOnly value={formData.total_harga} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.85rem', fontWeight: '600' }}>Deadline Otomatis</label>
+              <input type="date" readOnly value={formData.deadline} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#f1f5f9' }} />
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer', transition: '0.3s' }}>
+            {loading ? 'Memproses ke Database...' : 'Simpan Pesanan'}
           </button>
         </form>
       </div>
     </div>
   );
-}
-
-function Field({ label, children }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <label style={{ fontSize: 13, fontWeight: 600, color: "#4a5568" }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-const s = {
-  wrapper: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    padding: 24,
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-  },
-  card: {
-    background: "#fff", borderRadius: 16, width: "100%", maxWidth: 500,
-    boxShadow: "0 8px 32px rgba(0,0,0,0.12)", overflow: "hidden",
-  },
-  cardHeader: {
-    background: "linear-gradient(90deg, #3498db, #2980b9)",
-    padding: "24px 28px",
-  },
-  title:    { margin: 0, fontSize: 20, fontWeight: 700, color: "#fff" },
-  subtitle: { margin: "4px 0 0", fontSize: 13, color: "rgba(255,255,255,0.8)" },
-  form: {
-    display: "flex", flexDirection: "column", gap: 16, padding: "24px 28px",
-  },
-  input: {
-    padding: "10px 12px", borderRadius: 8, border: "1.5px solid #cbd5e0",
-    fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box",
-    fontFamily: "inherit", color: "#2d3748",
-  },
-  infoBox: {
-    background: "#ebf8ff", border: "1.5px solid #bee3f8", borderRadius: 10,
-    padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8,
-  },
-  infoRow: {
-    display: "flex", justifyContent: "space-between", fontSize: 14, color: "#2b6cb0",
-  },
-  btn: {
-    background: "linear-gradient(90deg, #3498db, #2980b9)", color: "#fff",
-    border: "none", borderRadius: 8, padding: "12px", fontSize: 15,
-    fontWeight: 600, cursor: "pointer", marginTop: 4, fontFamily: "inherit",
-  },
-  sukses:   { background: "#c6f6d5", color: "#276749", borderRadius: 8, padding: "10px 14px", fontSize: 14 },
-  errorBox: { background: "#fed7d7", color: "#9b2c2c", borderRadius: 8, padding: "10px 14px", fontSize: 14 },
 };
+
+export default AddOrder;

@@ -1,17 +1,14 @@
 import React from 'react';
+import { useOrders } from '../context/OrderContext'; 
 
 const Dashboard = () => {
-  // Dummy data untuk simulasi (Nanti diganti data dari Backend/Context)
-  const stats = [
-    { label: 'Pesanan Baru', value: '8', color: '#3b82f6' }, // Biru
-    { label: 'Sedang Diproses', value: '5', color: '#f59e0b' }, // Oranye
-    { label: 'Selesai Hari Ini', value: '12', color: '#10b981' }, // Hijau
-  ];
+  // 1. Ambil data DAN fungsi update dari Context di sini (hanya sekali saja)
+  const { orders, updateOrderStatus } = useOrders(); 
 
-  const recentOrders = [
-    { id: 1, nama: 'Budi', layanan: 'Potong Celana', status: 'Proses' },
-    { id: 2, nama: 'Siti', layanan: 'Ganti Resleting', status: 'Selesai' },
-    { id: 3, nama: 'Andi', layanan: 'Permak Jas', status: 'Proses' },
+  const stats = [
+    { label: 'Total Pesanan', value: orders.length, color: '#3b82f6' },
+    { label: 'Sedang Diproses', value: orders.filter(o => o.status === 'menunggu').length, color: '#f59e0b' },
+    { label: 'Selesai', value: orders.filter(o => o.status === 'selesai').length, color: '#10b981' },
   ];
 
   const quickNotes = [
@@ -25,13 +22,14 @@ const Dashboard = () => {
       <header className="dashboard-hero">
         <div>
           <p className="dashboard-hero__eyebrow">Ringkasan Harian</p>
-          <h2 className="dashboard-hero__title">Operasional vermak hari ini terlihat jelas dan cepat dipantau.</h2>
-          <p className="dashboard-hero__subtitle">Lihat antrean aktif, progres layanan, dan gambaran kerja harian dalam satu layar.</p>
+          <h2 className="dashboard-hero__title">Operasional vermak hari ini terlihat jelas.</h2>
+          <p className="dashboard-hero__subtitle">Data real-time dari database Studio Vermak.</p>
         </div>
         <div className="dashboard-highlight">
           <span className="dashboard-highlight__label">Fokus Hari Ini</span>
-          <strong className="dashboard-highlight__value">5 pesanan masih diproses</strong>
-          <span className="dashboard-highlight__meta">Jaga ritme pengerjaan dan update status saat pesanan selesai.</span>
+          <strong className="dashboard-highlight__value">
+            {orders.filter(o => o.status === 'menunggu').length} pesanan menunggu
+          </strong>
         </div>
       </header>
 
@@ -63,14 +61,27 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {recentOrders.map((order) => (
+                {orders.map((order) => (
                   <tr key={order.id}>
-                    <td>{order.nama}</td>
+                    <td>{order.nama_pelanggan}</td>
                     <td>{order.layanan}</td>
                     <td>
-                      <span className={`status-pill${order.status === 'Selesai' ? ' is-complete' : ''}`}>
+                      <button 
+                        onClick={() => {
+                          const nextStatus = order.status === 'menunggu' ? 'selesai' : 'menunggu';
+                          updateOrderStatus(order.id, nextStatus);
+                        }}
+                        className={`status-pill${order.status === 'selesai' ? ' is-complete' : ''}`}
+                        style={{ 
+                          cursor: 'pointer', 
+                          border: 'none', 
+                          fontFamily: 'inherit',
+                          display: 'inline-block'
+                        }}
+                        title="Klik untuk ubah status"
+                      >
                         {order.status}
-                      </span>
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -86,7 +97,6 @@ const Dashboard = () => {
               <h3 className="dashboard-panel__title">Prioritas Tim</h3>
             </div>
           </div>
-
           <div className="note-list">
             {quickNotes.map((note) => (
               <div key={note} className="note-item">
