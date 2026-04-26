@@ -9,6 +9,9 @@ app.use(express.json());
 const orderRoutes = require("./routes/orderRoutes");
 app.use("/api/orders", orderRoutes);
 
+const customerRoutes = require("./routes/customerRoutes");
+app.use("/api/customers", customerRoutes);
+
 app.get("/", (req, res) => {
   res.json({ message: "Backend Vermak berjalan ✅" });
 });

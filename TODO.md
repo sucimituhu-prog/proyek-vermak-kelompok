@@ -1,11 +1,10 @@
-# UI Improvement Plan
+# TODO - Fix database pelanggan kosong di web
 
-## Steps
-- [x] 1. Clean up `frontend/src/App.css` (remove unused Vite template styles)
-- [x] 2. Build design system in `frontend/src/index.css` (CSS variables, reusable classes, animations)
-- [x] 3. Refactor `frontend/src/pages/AddOrder.jsx` (replace inline styles with CSS classes)
-- [x] 4. Refactor `frontend/src/pages/CustomerList.jsx` (replace inline styles with CSS classes)
-- [x] 5. Implement full `frontend/src/pages/FinanceReport.jsx` (summary cards, transaction table)
-- [x] 6. Enhance `frontend/src/pages/Dashboard.jsx` (use OrderContext real data, icons, empty state)
-- [ ] 7. Verify responsiveness and polish
+- [x] Analisis masalah: backend tidak punya tabel & API customers; frontend hanya pakai localStorage.
+- [x] Buat migration SQL tabel `customers`.
+- [x] Buat `backend/routes/customerRoutes.js` (CRUD API customers).
+- [x] Update `backend/server.js` untuk mount route `/api/customers`.
+- [x] Update `frontend/src/pages/CustomerList.jsx` agar fetch data dari backend via API.
+- [ ] Jalankan migrasi SQL di MySQL & restart backend.
+
 
