@@ -125,17 +125,16 @@ router.delete("/:id", async (req, res) => {
     return res.status(500).json({ message: "Gagal menghapus pesanan." });
   }
 });
-// ─── PUT /api/orders/:id — Update Profil Pelanggan & Catatan (DIUPDATE) ──────
+
+// ─── PUT /api/orders/:id — Update Profil Pelanggan & Catatan ─────────────────
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  // 1. Tambahin 'catatan' di sini biar diambil dari frontend
-  const { nama_pelanggan, nomor_hp, catatan } = req.body; 
+  const { nama_pelanggan, nomor_hp, catatan } = req.body;
 
   try {
-    // 2. Tambahin 'catatan = ?' di dalam query SQL
     const [result] = await db.execute(
       "UPDATE orders SET nama_pelanggan = ?, nomor_hp = ?, catatan = ? WHERE id = ?",
-      [nama_pelanggan, nomor_hp, catatan, id] // 3. Masukin variabel catatan ke sini
+      [nama_pelanggan, nomor_hp, catatan || "", id]
     );
 
     if (result.affectedRows === 0) {
@@ -150,3 +149,4 @@ router.put("/:id", async (req, res) => {
 });
 
 module.exports = router;
+
