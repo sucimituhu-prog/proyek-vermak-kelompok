@@ -12,6 +12,9 @@ const layananRoutes = require("./routes/layananRoutes");
 app.use("/api/orders",  orderRoutes);
 app.use("/api/layanan", layananRoutes);
 
+const customerRoutes = require("./routes/customerRoutes");
+app.use("/api/customers", customerRoutes);
+
 app.get("/", (req, res) => {
   res.json({ message: "Backend Vermak berjalan ✅" });
 });
