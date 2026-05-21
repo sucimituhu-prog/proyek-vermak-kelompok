@@ -6,8 +6,11 @@ const PORT    = 5000;
 app.use(cors());
 app.use(express.json());
 
-const orderRoutes = require("./routes/orderRoutes");
-app.use("/api/orders", orderRoutes);
+const orderRoutes   = require("./routes/orderRoutes");
+const layananRoutes = require("./routes/layananRoutes");
+
+app.use("/api/orders",  orderRoutes);
+app.use("/api/layanan", layananRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Backend Vermak berjalan ✅" });
