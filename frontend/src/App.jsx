@@ -75,7 +75,7 @@ function App() {
     const token = localStorage.getItem('token');
     if (!token) { setChecking(false); return; }
 
-    axios.get('http://localhost:5000/api/auth/verify', {
+    axios.get('https://proyek-vermak-kelompok-production.up.railway.app/api/auth/verify', {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(() => setIsLoggedIn(true))

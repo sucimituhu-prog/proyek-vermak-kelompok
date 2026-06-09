@@ -59,7 +59,7 @@ export default function OrderList() {
   const handleSaveCatatan = async () => {
     setSavingCatatan(true);
     try {
-      await axios.put(`http://localhost:5000/api/orders/${selectedOrder.id}`, {
+      await axios.put(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/${selectedOrder.id}`, {
         nama_pelanggan: selectedOrder.nama_pelanggan,
         nomor_hp: selectedOrder.nomor_hp,
         catatan: editCatatan,
@@ -108,7 +108,7 @@ export default function OrderList() {
               {modalOrder.foto ? (
                 <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px', maxHeight: '280px' }}>
                   <img
-                    src={`http://localhost:5000${modalOrder.foto}`}
+                    src={`https://proyek-vermak-kelompok-production.up.railway.app${modalOrder.foto}`}
                     alt="Foto pakaian"
                     style={{ maxWidth: '100%', maxHeight: '280px', objectFit: 'contain', borderRadius: '12px' }}
                   />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API = 'http://localhost:5000/api/layanan';
+const API = 'https://proyek-vermak-kelompok-production.up.railway.app/api/layanan';
 
 const emptyForm = { nama: '', harga: '', deadline_hari: '', deskripsi: '', aktif: 1 };
 

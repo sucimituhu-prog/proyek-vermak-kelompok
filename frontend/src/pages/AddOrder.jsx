@@ -29,7 +29,7 @@ const AddOrder = () => {
   );
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/layanan')
+    axios.get('https://proyek-vermak-kelompok-production.up.railway.app/api/layanan')
       .then(res => setLayananOptions(res.data))
       .catch(err => console.error("Gagal fetch layanan:", err))
       .finally(() => setLoadingLayanan(false));
@@ -82,7 +82,7 @@ const AddOrder = () => {
       data.append('catatan',       formData.catatan);
       if (fotoFile) data.append('foto', fotoFile);
 
-      const res = await axios.post('http://localhost:5000/api/orders', data, {
+      const res = await axios.post('https://proyek-vermak-kelompok-production.up.railway.app/api/orders', data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

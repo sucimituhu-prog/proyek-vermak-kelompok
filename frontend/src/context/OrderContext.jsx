@@ -9,7 +9,7 @@ export const OrderProvider = ({ children }) => {
   // Fungsi ambil data (Refresh data dari MySQL via Express)
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/orders');
+      const response = await axios.get('https://proyek-vermak-kelompok-production.up.railway.app/api/orders');
       setOrders(response.data);
     } catch (error) {
       console.error("Gagal ambil data:", error);
@@ -19,7 +19,7 @@ export const OrderProvider = ({ children }) => {
   // Fungsi tambah pesanan (Digunakan di AddOrder)
   const addOrder = async (newOrder) => {
     try {
-      await axios.post('http://localhost:5000/api/orders', newOrder);
+      await axios.post('https://proyek-vermak-kelompok-production.up.railway.app/api/orders', newOrder);
       await fetchOrders(); // Auto-refresh list
     } catch (error) {
       console.error("Gagal tambah:", error);
@@ -30,7 +30,7 @@ export const OrderProvider = ({ children }) => {
   // Fungsi update status (Digunakan di Dashboard untuk toggle status)
   const updateOrderStatus = async (id, newStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/orders/${id}/status`, { status: newStatus });
+      await axios.put(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/${id}/status`, { status: newStatus });
       await fetchOrders(); 
     } catch (error) {
       console.error("Gagal update status:", error);
@@ -41,7 +41,7 @@ export const OrderProvider = ({ children }) => {
   const deleteOrder = async (id) => {
     try {
       if (window.confirm("Yakin ingin menghapus pesanan ini?")) {
-        await axios.delete(`http://localhost:5000/api/orders/${id}`);
+        await axios.delete(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/${id}`);
         await fetchOrders();
       }
     } catch (error) {
@@ -52,7 +52,7 @@ export const OrderProvider = ({ children }) => {
   // Fungsi update data profil/detail (Digunakan di Customer List)
   const updateOrder = async (id, updatedData) => {
     try {
-      await axios.put(`http://localhost:5000/api/orders/${id}`, updatedData);
+      await axios.put(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/${id}`, updatedData);
       await fetchOrders();
     } catch (error) {
       console.error("Gagal update profil:", error);

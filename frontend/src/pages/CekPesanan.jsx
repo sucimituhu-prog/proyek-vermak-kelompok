@@ -26,7 +26,7 @@ export default function CekPesanan() {
     setError('');
     setPesanan(null);
     try {
-      const res = await axios.get(`http://localhost:5000/api/orders/cek/${nomorOrder}`);
+      const res = await axios.get(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/cek/${nomorOrder}`);
       setPesanan(res.data);
     } catch (err) {
       setError(err.response?.status === 404
@@ -136,7 +136,7 @@ export default function CekPesanan() {
                 Foto Pakaian
               </p>
               <img
-                src={`http://localhost:5000${pesanan.foto}`}
+                src={`https://proyek-vermak-kelompok-production.up.railway.app${pesanan.foto}`}
                 alt="Foto pakaian"
                 style={{ width: '100%', borderRadius: '10px', objectFit: 'cover', maxHeight: '250px' }}
               />
