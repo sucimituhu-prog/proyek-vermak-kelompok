@@ -18,7 +18,6 @@ export default function Login({ onLoginSuccess }) {
       const res = await axios.post(`${API}/api/auth/login`, { username, password });
       const token = res.data.token;
       localStorage.setItem('token', token);
-      // Set header axios global langsung — fix race condition
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       onLoginSuccess();
     } catch (err) {
@@ -36,7 +35,8 @@ export default function Login({ onLoginSuccess }) {
       <div style={{ width: '100%', maxWidth: '400px' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>✂️</div>
+          <img src="/logovermak.png" alt="Logo Al-Ziran"
+            style={{ width: '80px', height: '80px', borderRadius: '50%', marginBottom: '12px', objectFit: 'cover' }} />
           <h1 style={{ color: '#1e293b', margin: 0, fontSize: '1.6rem', fontWeight: '800' }}>
             Al-Ziran Vermak
           </h1>
