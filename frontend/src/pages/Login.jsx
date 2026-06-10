@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API = 'https://proyek-vermak-kelompok-production.up.railway.app';
+
 export default function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -13,8 +15,11 @@ export default function Login({ onLoginSuccess }) {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('https://proyek-vermak-kelompok-production.up.railway.app/api/auth/login', { username, password });
-      localStorage.setItem('token', res.data.token);
+      const res = await axios.post(`${API}/api/auth/login`, { username, password });
+      const token = res.data.token;
+      localStorage.setItem('token', token);
+      // Set header axios global langsung — fix race condition
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       onLoginSuccess();
     } catch (err) {
       setError(err.response?.data?.message || 'Login gagal. Coba lagi.');
@@ -30,7 +35,6 @@ export default function Login({ onLoginSuccess }) {
     }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
 
-        {/* Logo/Brand */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ fontSize: '2.5rem', marginBottom: '8px' }}>✂️</div>
           <h1 style={{ color: '#1e293b', margin: 0, fontSize: '1.6rem', fontWeight: '800' }}>
@@ -41,7 +45,6 @@ export default function Login({ onLoginSuccess }) {
           </p>
         </div>
 
-        {/* Form */}
         <div style={{
           backgroundColor: 'white', borderRadius: '20px', padding: '32px',
           border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.07)',

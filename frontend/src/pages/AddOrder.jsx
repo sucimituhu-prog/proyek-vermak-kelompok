@@ -3,7 +3,7 @@ import { useOrders } from '../context/OrderContext';
 import axios from 'axios';
 
 const AddOrder = () => {
-  const { addOrder, orders } = useOrders();
+  const { addOrder, fetchOrders, orders } = useOrders();
   const [layananOptions, setLayananOptions] = useState([]);
   const [loadingLayanan, setLoadingLayanan] = useState(true);
   const [fotoFile, setFotoFile]             = useState(null);
@@ -92,6 +92,7 @@ const AddOrder = () => {
       setFotoFile(null);
       setFotoPreview(null);
       setIsPelangganLama(false);
+      await fetchOrders(); // ← auto-refresh data tanpa perlu reload halaman
       setTimeout(() => { setSuccess(false); setOrderId(null); }, 5000);
     } catch {
       alert("Gagal menyimpan ke database!");

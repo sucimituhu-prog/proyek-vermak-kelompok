@@ -1,47 +1,72 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios'; // Pastikan ini ada!
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+
+const API = 'https://proyek-vermak-kelompok-production.up.railway.app';
+const POLL_INTERVAL = 10000; // polling tiap 10 detik
 
 const OrderContext = createContext();
 
 export const OrderProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
+  const intervalRef = useRef(null);
 
-  // Fungsi ambil data (Refresh data dari MySQL via Express)
+  const getToken = () => localStorage.getItem('token');
+
   const fetchOrders = async () => {
+    const token = getToken();
+    if (!token) return;
     try {
-      const response = await axios.get('https://proyek-vermak-kelompok-production.up.railway.app/api/orders');
+      const response = await axios.get(`${API}/api/orders`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setOrders(response.data);
     } catch (error) {
       console.error("Gagal ambil data:", error);
     }
   };
 
-  // Fungsi tambah pesanan (Digunakan di AddOrder)
+  const startPolling = () => {
+    if (intervalRef.current) return;
+    fetchOrders();
+    intervalRef.current = setInterval(fetchOrders, POLL_INTERVAL);
+  };
+
+  const stopPolling = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
   const addOrder = async (newOrder) => {
     try {
-      await axios.post('https://proyek-vermak-kelompok-production.up.railway.app/api/orders', newOrder);
-      await fetchOrders(); // Auto-refresh list
+      await axios.post(`${API}/api/orders`, newOrder, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      await fetchOrders();
     } catch (error) {
       console.error("Gagal tambah:", error);
       throw error;
     }
   };
 
-  // Fungsi update status (Digunakan di Dashboard untuk toggle status)
   const updateOrderStatus = async (id, newStatus) => {
     try {
-      await axios.put(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/${id}/status`, { status: newStatus });
-      await fetchOrders(); 
+      await axios.put(`${API}/api/orders/${id}/status`, { status: newStatus }, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      await fetchOrders();
     } catch (error) {
       console.error("Gagal update status:", error);
     }
   };
 
-  // Fungsi hapus (Digunakan di Customer List)
   const deleteOrder = async (id) => {
     try {
       if (window.confirm("Yakin ingin menghapus pesanan ini?")) {
-        await axios.delete(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/${id}`);
+        await axios.delete(`${API}/api/orders/${id}`, {
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
         await fetchOrders();
       }
     } catch (error) {
@@ -49,20 +74,19 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
-  // Fungsi update data profil/detail (Digunakan di Customer List)
   const updateOrder = async (id, updatedData) => {
     try {
-      await axios.put(`https://proyek-vermak-kelompok-production.up.railway.app/api/orders/${id}`, updatedData);
+      await axios.put(`${API}/api/orders/${id}`, updatedData, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
       await fetchOrders();
     } catch (error) {
       console.error("Gagal update profil:", error);
     }
   };
 
-  // Helper untuk laporan keuangan Elsa
   const getTotalIncome = () => {
     return orders.reduce((sum, o) => {
-      // Menangani dua versi nama field (total_harga atau totalHarga)
       const harga = Number(o.total_harga || o.totalHarga || 0);
       return sum + harga;
     }, 0);
@@ -70,21 +94,23 @@ export const OrderProvider = ({ children }) => {
 
   const getOrderCount = () => orders.length;
 
-  // Jalankan fetch pertama kali saat aplikasi dibuka
-  useEffect(() => { 
-    fetchOrders(); 
+  useEffect(() => {
+    startPolling();
+    return () => stopPolling();
   }, []);
 
   return (
-    <OrderContext.Provider value={{ 
-      orders, 
-      addOrder, 
-      updateOrderStatus, 
-      deleteOrder, 
-      updateOrder, 
-      fetchOrders, 
-      getTotalIncome, 
-      getOrderCount 
+    <OrderContext.Provider value={{
+      orders,
+      addOrder,
+      updateOrderStatus,
+      deleteOrder,
+      updateOrder,
+      fetchOrders,
+      startPolling,
+      stopPolling,
+      getTotalIncome,
+      getOrderCount,
     }}>
       {children}
     </OrderContext.Provider>

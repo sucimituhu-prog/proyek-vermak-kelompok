@@ -97,7 +97,7 @@ export default function Dashboard() {
           <div className="panel__header">
             <div>
               <p className="panel__eyebrow">Pesanan Aktif</p>
-              <h3 className="panel__title">5 Antrean Terbaru</h3>
+              <h3 className="panel__title">{recentOrders.length} Antrean Terbaru</h3>
             </div>
           </div>
 
